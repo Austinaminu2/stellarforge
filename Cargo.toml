@@ -2,16 +2,19 @@
 resolver = "2"
 
 members = [
-    "src/contracts/forge-vesting",
-    "src/contracts/forge-vesting-factory",
-    "src/contracts/forge-stream",
-    "src/contracts/forge-multisig",
-    "src/contracts/forge-governor",
-    "src/contracts/forge-oracle",
+    "crates/forge-errors",
+    "contracts/forge-vesting",
+    "contracts/forge-vesting-factory",
+    "contracts/forge-stream",
+    "contracts/forge-multisig",
+    "contracts/forge-governor",
+    "contracts/forge-oracle",
+    "benches",
 ]
 
 [workspace.dependencies]
 soroban-sdk = { version = "21.7.6" }
+forge-errors = { workspace = true }
 
 [profile.release]
 opt-level = "z"

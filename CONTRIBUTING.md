@@ -5,7 +5,7 @@ Thank you for your interest in contributing to StellarForge! We welcome contribu
 ## 🛠️ Prerequisites
 
 To contribute to this project, you will need:
-- **Rust:** Latest stable version
+- **Rust:** Latest stable version (2021 edition)
 - **Target:** `wasm32v1-none`
 - **Stellar CLI:** v25.2.0 or higher
 - **Make:** Optional, but recommended for running development commands
@@ -34,6 +34,15 @@ By default, the hook runs `cargo fmt` and `cargo clippy`. To also run the full t
 # Run tests on this commit only
 FORGE_PRECOMMIT_TESTS=1 git commit -m "your message"
 ```
+
+## 📦 Shared Error Crate (forge-errors)
+
+When adding new common error variants to `forge-errors`:
+
+1. **Consider if the error is truly common** across multiple contracts.
+2. **Add descriptive documentation** to the variant in `crates/forge-errors/src/lib.rs`.
+3. **Update error codes** to avoid conflicts with existing variants.
+4. **Test the change** across all affected contracts.
 
 ## 📜 Development Workflow
 
@@ -66,7 +75,7 @@ make check
 
 1. Create a new branch for your feature or bug fix.
 2. Ensure all tests pass and the code is correctly formatted.
-3. Update the documentation (README.md, docs/) if you've changed contract interfaces or added new features.
+3. Update the documentation (`README.md`, `docs/`) if you've changed contract interfaces or added new features.
 4. Submit a Pull Request targeting the `main` branch.
 5. Use the provided PR template to describe your changes and testing.
 
@@ -77,6 +86,25 @@ make check
 - `enhancement` — New features or improvements.
 - `documentation` — Improvements to the docs.
 
-## 🆘 Need Help?
+## 🔒 Security
 
-If you have questions, feel free to open an issue or start a discussion in the [GitHub Discussions](https://github.com/soma-enyi/stellarforge/discussions).
+Security is our top priority. If you discover a security vulnerability:
+
+1. **Do NOT open a public issue.**
+2. **Email us privately**: security@stellarforge.org
+3. **Include details**: Impact, reproduction steps, affected versions.
+4. **Allow time for response**: We'll acknowledge within 48 hours.
+
+## 🤝 Community
+
+- **GitHub Discussions**: Use for questions, ideas, and general discussion.
+- **Issues**: Bug reports and feature requests.
+- **Discord**: [Join our community](https://discord.gg/stellarforge) for real-time chat.
+
+## 📜 License
+
+By contributing, you agree that your contributions will be licensed under the same [MIT License](LICENSE) as the project.
+
+---
+
+Thank you for contributing to StellarForge! 🚀

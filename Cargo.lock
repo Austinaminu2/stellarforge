@@ -478,6 +478,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "forge-errors"
+version = "0.1.0"
+dependencies = [
+ "soroban-sdk",
+]
+
+[[package]]
 name = "forge-governor"
 version = "0.1.0"
 dependencies = [
@@ -495,6 +502,7 @@ dependencies = [
 name = "forge-oracle"
 version = "0.1.0"
 dependencies = [
+ "forge-errors",
  "soroban-sdk",
 ]
 

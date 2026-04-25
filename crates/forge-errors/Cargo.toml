@@ -1,0 +1,16 @@
+[package]
+name = "forge-errors"
+version = "0.1.0"
+edition = "2021"
+description = "Common error types for StellarForge contracts"
+authors = ["StellarForge Contributors"]
+license = "MIT"
+
+[dependencies]
+soroban-sdk = { version = "21.7.6" }
+
+[dev-dependencies]
+soroban-sdk = { version = "21.7.6", features = ["testutils"] }
+
+[lib]
+crate-type = ["cdylib", "rlib"]
