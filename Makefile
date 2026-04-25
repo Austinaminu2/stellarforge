@@ -34,6 +34,6 @@ clean:
 	cargo clean
 
 # Run contract benchmarks (Soroban budget: CPU instructions + memory bytes)
-.PHONY: bench
-bench:
-	cargo run -p forge-benches
+# .PHONY: bench
+# bench:
+# 	cargo run -p forge-benches

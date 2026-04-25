@@ -47,11 +47,11 @@ Developers evaluating StellarForge can use this table to quickly identify the ri
 
 | Contract | Use Case | Admin Required | Events Emitted | Timelock |
 | :--- | :--- | :--- | :--- | :--- |
-| [`forge-governor`](#forge-governor) | Governance | No (Auth-based) | None | Yes (Voting/Execution delay) |
-| [`forge-multisig`](#forge-multisig) | Multisig Treasury | Yes (Owners) | None | Yes (Post-approval delay) |
-| [`forge-oracle`](#forge-oracle) | Price Feed | Yes (Admin) | `price_updated` | No |
+| [`forge-governor`](#forge-governor) | Governance | No (Auth-based) | `proposal_created`, `vote_cast`, `proposal_finalized` | Yes (Voting/Execution delay) |
+| [`forge-multisig`](#forge-multisig) | Multisig Treasury | Yes (Owners) | `proposal_created`, `proposal_approved`, `proposal_executed` | Yes (Post-approval delay) |
+| [`forge-oracle`](#forge-oracle) | Price Feed | Yes (Admin) | `price_updated`, `admin_transferred` | No |
 | [`forge-stream`](#forge-stream) | Real-time Payments | No (Stream-specific) | `stream_created`, `withdrawn`, `stream_cancelled`, `stream_paused`, `stream_resumed` | No |
-| [`forge-vesting`](#forge-vesting) | Token Vesting | Yes (Admin) | `vesting_initialized`, `claimed`, `vesting_cancelled`, `admin_transferred` | Yes (Cliff period) |
+| [`forge-vesting`](#forge-vesting) | Token Vesting | Yes (Admin) | `vesting_initialized`, `claimed`, `vesting_cancelled`, `admin_transferred`, `beneficiary_changed` | Yes (Cliff period) |
 | [`forge-vesting-factory`](#forge-vesting-factory) | Multi-beneficiary Vesting | Yes (Per-schedule Admin) | `schedule_created`, `claimed`, `schedule_cancelled` | Yes (Cliff period) |
 ---
 
@@ -144,7 +144,7 @@ A single-deployment factory that manages multiple vesting schedules. Eliminates 
 ### forge-stream
 Pay-per-second token streams. Ideal for payroll, subscriptions, or real-time contractor payments.
 
-* **Key Function:** `create_stream(sender, token, recipient, rate_per_second, duration_seconds)`
+* **Key Function:** `create_stream(sender, token, recipient, rate_per_second, duration_seconds, min_withdrawal_amount)`
 * **Action:** `withdraw(stream_id)` allows the recipient to pull accrued tokens at any time.
 * **Pause/Resume:** `pause_stream(stream_id)` and `resume_stream(stream_id)` allow senders to temporarily halt or restart token accrual.
 * **`is_active` vs `is_claimable`:** `get_stream_status()` returns both fields. A finished stream has `is_active = false` and `is_finished = true`, but may still have `withdrawable > 0`. Always check `is_claimable` (or `withdrawable` directly) to determine whether tokens can be pulled — do not rely on `is_active` alone.
@@ -180,14 +180,15 @@ The tables below are verified against the current contract code in `contracts/*/
 | :--- | :--- | :--- |
 | `vesting_initialized` | Emitted by `initialize(...)` after the vesting config and claimed amount are stored. | `total_amount: i128`, `cliff_seconds: u64`, `duration_seconds: u64` |
 | `claimed` | Emitted by `claim()` after the beneficiary's claimed amount is updated and vested tokens are transferred. | `beneficiary: Address`, `claimable: i128` |
-| `vesting_cancelled` | Emitted by `cancel()` after the vesting is marked cancelled and any unvested tokens are returned to the admin. | `admin: Address`, `returnable: i128` |
+| `vesting_cancelled` | Emitted by `cancel()` after the vesting is marked cancelled and any unvested tokens are returned to the admin. | `admin: Address`, `to_admin: i128`, `beneficiary: Address`, `to_beneficiary: i128` |
 | `admin_transferred` | Emitted by `transfer_admin(new_admin)` after admin rights move to the new admin address. | `old_admin: Address`, `new_admin: Address` |
+| `beneficiary_changed` | Emitted by `change_beneficiary(new_beneficiary)` after beneficiary rights move to the new address. | `old_beneficiary: Address`, `new_beneficiary: Address` |
 
 ### forge-stream
 
 | Event Name | Trigger | Fields |
 | :--- | :--- | :--- |
-| `stream_created` | Emitted by `create_stream(...)` after the stream is stored and the active stream count is incremented. | `stream_id: u64`, `recipient: Address`, `rate_per_second: i128`, `duration_seconds: u64` |
+| `stream_created` | Emitted by `create_stream(...)` after the stream is stored and the active stream count is incremented. | `stream_id: u64`, `recipient: Address`, `rate_per_second: i128`, `duration_seconds: u64`, `min_withdrawal_amount: i128` |
 | `withdrawn` | Emitted by `withdraw(stream_id)` after the withdrawn amount is updated and accrued tokens are transferred to the recipient. | `stream_id: u64`, `recipient: Address`, `withdrawable: i128` |
 | `stream_cancelled` | Emitted by `cancel_stream(stream_id)` after the stream is marked cancelled and funds are paid out/refunded. | `stream_id: u64`, `withdrawable: i128`, `returnable: i128` |
 | `stream_paused` | Emitted by `pause_stream(stream_id)` after the stream is marked paused. | `stream_id: u64` |
@@ -197,19 +198,32 @@ The tables below are verified against the current contract code in `contracts/*/
 
 | Event Name | Trigger | Fields |
 | :--- | :--- | :--- |
-| None | This contract does not currently emit any events. | None |
+| `proposal_created` | Emitted by `propose(...)` after the proposal is stored and the proposer is marked as approved. | `proposal_id: u64`, `proposer: Address`, `to: Address`, `token: Address`, `amount: i128` |
+| `proposal_approved` | Emitted by `approve(...)` after an owner approves a proposal. | `proposal_id: u64`, `owner: Address`, `approval_count: u32` |
+| `proposal_executed` | Emitted by `execute(...)` after a proposal is successfully executed. | `proposal_id: u64`, `executor: Address`, `to: Address`, `amount: i128` |
 
 ### forge-governor
 
 | Event Name | Trigger | Fields |
 | :--- | :--- | :--- |
-| None | This contract does not currently emit any events. | None |
+| `proposal_created` | Emitted by `propose(...)` after the proposal is stored. | `proposal_id: u64`, `proposer: Address`, `vote_end: u64` |
+| `vote_cast` | Emitted by `vote(...)` after a vote is successfully cast. | `proposal_id: u64`, `voter: Address`, `direction: VoteDirection`, `weight: i128` |
+| `proposal_finalized` | Emitted by `finalize(...)` after a proposal is finalized (Passed or Failed). | `proposal_id: u64`, `votes_for: i128`, `votes_against: i128` |
 
 ### forge-oracle
 
 | Event Name | Trigger | Fields |
 | :--- | :--- | :--- |
 | `price_updated` | Emitted by `submit_price(base, quote, price)` after the submitted price and update timestamp are written to storage. | `base: Symbol`, `quote: Symbol`, `price: i128`, `updated_at: u64` |
+| `admin_transferred` | Emitted by `transfer_admin(new_admin)` after admin rights move to the new admin address. | `old_admin: Address`, `new_admin: Address` |
+
+### forge-vesting-factory
+
+| Event Name | Trigger | Fields |
+| :--- | :--- | :--- |
+| `schedule_created` | Emitted by `create_schedule(...)` after a new schedule is created. | `id: u64`, `total_amount: i128` |
+| `claimed` | Emitted by `claim(...)` after tokens are claimed for a schedule. | `schedule_id: u64`, `claimable: i128` |
+| `schedule_cancelled` | Emitted by `cancel(...)` after a schedule is cancelled. | `schedule_id: u64` |
 
 ---
 

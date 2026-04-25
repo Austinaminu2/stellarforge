@@ -13,7 +13,7 @@ if [[ "${1:-}" == "--dry-run" ]]; then
 fi
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 README="$REPO_ROOT/README.md"
 WASM_DIR="$REPO_ROOT/target/wasm32v1-none/release"
 

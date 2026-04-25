@@ -1,219 +1,105 @@
 # Contributing to StellarForge
 
-Thank you for your interest in contributing to StellarForge! This document provides guidelines for contributing to our collection of Soroban smart contracts.
+Thank you for your interest in contributing to StellarForge! We welcome contributions that help make this collection of Soroban smart contract primitives more robust and easier to use.
 
-## 🚀 Quick Start
+## 🛠️ Prerequisites
 
-1. **Fork the repository**
-2. **Create a feature branch**: `git checkout -b feature/your-feature-name`
-3. **Make your changes**
-4. **Run tests**: `make test` or `cargo test --workspace`
-5. **Submit a pull request**
+To contribute to this project, you will need:
+- **Rust:** Latest stable version (2021 edition)
+- **Target:** `wasm32v1-none`
+- **Stellar CLI:** v25.2.0 or higher
+- **Make:** Optional, but recommended for running development commands
+
+## 🚀 Getting Started
+
+1. **Fork the repository** on GitHub.
+2. **Clone your fork** locally:
+   ```bash
+   git clone https://github.com/YOUR_USERNAME/stellarforge.git
+   cd stellarforge
+   ```
+3. **Set up the pre-commit hook** (recommended):
+   ```bash
+   cp src/scripts/pre-commit .git/hooks/pre-commit
+   chmod +x .git/hooks/pre-commit
+   ```
+
+### Pre-commit Hook (Optional but Recommended)
+
+We provide a git pre-commit hook that automatically checks code formatting and linting before each commit. This helps catch issues early.
+
+By default, the hook runs `cargo fmt` and `cargo clippy`. To also run the full test suite before each commit, set the `FORGE_PRECOMMIT_TESTS` environment variable to `1`:
+
+```bash
+# Run tests on this commit only
+FORGE_PRECOMMIT_TESTS=1 git commit -m "your message"
+```
 
 ## 📦 Shared Error Crate (forge-errors)
 
 When adding new common error variants to `forge-errors`:
 
-1. **Consider if the error is truly common** across multiple contracts
-2. **Add descriptive documentation** to the variant in `crates/forge-errors/src/lib.rs`
-3. **Update error codes** to avoid conflicts with existing variants
-4. **Test the change** across all affected contracts
+1. **Consider if the error is truly common** across multiple contracts.
+2. **Add descriptive documentation** to the variant in `crates/forge-errors/src/lib.rs`.
+3. **Update error codes** to avoid conflicts with existing variants.
+4. **Test the change** across all affected contracts.
 
-### Adding New Common Errors
+## 📜 Development Workflow
 
-If you identify an error pattern that appears in 3+ contracts, consider adding it to `CommonError`:
-
-```rust
-#[contracterror]
-#[derive(Copy, Clone, Debug, PartialEq)]
-pub enum CommonError {
-    // Existing variants...
-    
-    /// New error description
-    NewError = NEXT_AVAILABLE_CODE,
-}
+### Building
+Build all contracts in the workspace:
+```bash
+make build
+# or
+cargo build --workspace
 ```
 
-**Process:**
-1. Add the variant to `CommonError` with next available error code
-2. Update any contracts that should use this new shared variant
-3. Add tests to verify the error behavior
-4. Update documentation
-
-## 🏗 Development Setup
-
-### Prerequisites
-
-- **Rust**: 2021 edition with `wasm32v1-none` target
-- **Stellar CLI**: v25.2.0 or higher
-- **Make**: (optional) for convenience commands
-
-### Installation
-
+### Testing
+Run the full test suite:
 ```bash
-# Install Rust
-rustup target add wasm32v1-none
-
-# Install Stellar CLI
-cargo install --locked stellar-cli
-
-# Verify installation
-stellar --version
-```
-
-## 🧪 Testing
-
-### Running Tests
-
-```bash
-# Test all contracts
 make test
-
-# Test specific contract
-cargo test -p forge-governor
-cargo test -p forge-multisig
-cargo test -p forge-oracle
-cargo test -p forge-stream
-cargo test -p forge-vesting
-cargo test -p forge-vesting-factory
+# or
+cargo test --workspace
 ```
 
-### Test Coverage
+### Linting & Formatting
+Ensure your code follows the project's style:
+```bash
+make check
+# which runs:
+# cargo fmt --all -- --check
+# cargo clippy --all-targets -- -D warnings
+```
 
-We aim for high test coverage. When adding new features:
-- Write unit tests for new functionality
-- Test error paths exhaustively
-- Include integration tests for contract interactions
-- Verify all error variants are tested
+## 🏗️ Pull Request Process
 
-## 📝 Code Style
+1. Create a new branch for your feature or bug fix.
+2. Ensure all tests pass and the code is correctly formatted.
+3. Update the documentation (`README.md`, `docs/`) if you've changed contract interfaces or added new features.
+4. Submit a Pull Request targeting the `main` branch.
+5. Use the provided PR template to describe your changes and testing.
 
-Follow these conventions:
+## 🏷️ Issue Labels
 
-### Rust Style
-
-- Use `rustfmt` for formatting: `make fmt`
-- Use `clippy` for linting: `make lint`
-- Follow Rust idioms and Soroban best practices
-- Use `#![no_std]` for all contracts
-- Prefer `require_auth()` over manual auth checks where possible
-
-### Contract Patterns
-
-- **Error Handling**: Use the shared `CommonError` variants when applicable
-- **Storage**: Use appropriate storage types (instance vs persistent)
-- **Events**: Emit events for all state changes
-- **TTL Management**: Extend storage TTLs appropriately
-- **Security**: Follow established security patterns from existing contracts
-
-### Documentation
-
-- Document all public functions with examples
-- Include error conditions in docstrings
-- Update README.md for new features
-- Keep CHANGELOG.md updated
-
-## 🐛 Bug Reports
-
-When reporting bugs:
-
-1. **Use the issue template** provided in GitHub Issues
-2. **Include reproduction steps** with minimal example
-3. **Specify contract name** and affected functions
-4. **Include environment details** (OS, Rust version, Stellar CLI version)
-5. **Add logs** and error messages when applicable
-
-## 💡 Feature Requests
-
-We welcome feature requests! Please:
-
-1. **Check existing issues** for similar requests
-2. **Describe the use case** clearly
-3. **Consider impact** on existing contracts and integrators
-4. **Propose implementation approach** if you have ideas
-
-## 📄 Pull Request Process
-
-### Before Submitting
-
-- [ ] Tests pass: `make test`
-- [ ] Code formatted: `make fmt`
-- [ ] Linting clean: `make lint`
-- [ ] Documentation updated
-- [ ] CHANGELOG.md updated
-
-### PR Guidelines
-
-- **Small, focused PRs** are preferred
-- **One feature per PR** when possible
-- **Include tests** for new functionality
-- **Update documentation** as needed
-- **Link to related issues**
-
-### Review Process
-
-Maintainers will review for:
-- ✅ Code quality and style
-- ✅ Test coverage
-- ✅ Security considerations
-- ✅ Documentation completeness
-- ✅ Breaking changes (if any)
+- `good first issue` — Great for newcomers!
+- `bug` — Something isn't working correctly.
+- `enhancement` — New features or improvements.
+- `documentation` — Improvements to the docs.
 
 ## 🔒 Security
 
 Security is our top priority. If you discover a security vulnerability:
 
-1. **Do NOT open a public issue**
+1. **Do NOT open a public issue.**
 2. **Email us privately**: security@stellarforge.org
-3. **Include details**: Impact, reproduction steps, affected versions
-4. **Allow time for response**: We'll acknowledge within 48 hours
-
-## 📧 Development Tools
-
-### Make Commands
-
-```makefile
-build:
-	cargo build --workspace
-
-test:
-	cargo test --workspace
-
-fmt:
-	cargo fmt --all
-
-lint:
-	cargo clippy --workspace -- -D warnings
-
-check:
-	cargo fmt --all && cargo clippy --workspace -- -D warnings && cargo test --workspace
-
-clean:
-	cargo clean --workspace
-```
-
-### Workspace Structure
-
-```
-stellarforge/
-├── crates/
-│   └── forge-errors/          # Shared error library
-├── contracts/
-│   ├── forge-governor/       # Governance contract
-│   ├── forge-multisig/        # Multisig treasury
-│   ├── forge-oracle/          # Price feed contract
-│   ├── forge-stream/           # Token streaming
-│   ├── forge-vesting/          # Token vesting
-│   └── forge-vesting-factory/ # Multi-beneficiary vesting
-├── benches/                   # Performance benchmarks
-└── scripts/                   # Utility scripts
-```
+3. **Include details**: Impact, reproduction steps, affected versions.
+4. **Allow time for response**: We'll acknowledge within 48 hours.
 
 ## 🤝 Community
 
-- **GitHub Discussions**: Use for questions, ideas, and general discussion
-- **Issues**: Bug reports and feature requests
-- **Discord**: [Join our community](https://discord.gg/stellarforge) for real-time chat
+- **GitHub Discussions**: Use for questions, ideas, and general discussion.
+- **Issues**: Bug reports and feature requests.
+- **Discord**: [Join our community](https://discord.gg/stellarforge) for real-time chat.
 
 ## 📜 License
 
